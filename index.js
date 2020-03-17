@@ -2,6 +2,7 @@ const expres = require("express");
 const app = expres();
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
+const sanitize = require("mongo-sanitize");
 const port = 3001;
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -20,11 +21,13 @@ mongoose.connect(
 
 const Schema = mongoose.Schema;
 
-const usersSchema = new Schema({
-  name: String,
-  family: String,
-  mobile: String
-});
+const usersSchema = new Schema(
+  {
+    name: String,
+    family: String,
+    mobile: String
+  }
+);
 
 const usersModel = mongoose.model("users", usersSchema);
 
@@ -65,12 +68,18 @@ app.all("/addUser/:mobile", function(request, response) {
 app.all("/find", function(request, response) {
   // we can send injection inside mobile parameter like this {$ne: null}
   const mobile = request.body.mobile;
+  console.log(" beforeSanitize =", JSON.stringify(mobile) ===JSON.stringify({'$ne': null}) );
+  console.log(" afterSanitize =", sanitize({...mobile}));
 
-/*****************************************************************
- * IF IT WAS DELETEMANY INSTEAD OF FIND IT WOULD DELETE ALL DOCS *
- *****************************************************************/
-  usersModel.find({ mobile: mobile }, function(error, result) {
-    if (error) response.send({ error });
+  
+  /*****************************************************************
+   * IF IT WAS DELETEMANY INSTEAD OF FIND IT WOULD DELETE ALL DOCS *
+   *****************************************************************/
+  usersModel.find({ mobile: (mobile) }, function(error, result) {
+    if (error) {
+      response.send({ error });
+      console.log("error: ", error);
+    }
 
     if (result) {
       response.send(result);
