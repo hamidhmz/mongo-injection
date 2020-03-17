@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const sanitize = require("mongo-sanitize");
 const port = 3001;
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 const url = "mongodb://localhost:27017/seller";
